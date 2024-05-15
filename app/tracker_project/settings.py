@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "tracker.apps.TrackerConfig",
     "api.apps.ApiConfig",
     "debug_toolbar", # django-debug-toolbar
+    "rest_framework.authtoken", # token auth
 ]
 
 MIDDLEWARE = [
@@ -145,3 +146,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # User
 AUTH_USER_MODEL = "users.User"
+
+# django rest framework
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        "rest_framework.authentication.TokenAuthentication",  # new
+
+    ),
+
+}
