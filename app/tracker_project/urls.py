@@ -20,7 +20,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 urlpatterns = [
-    path('', admin.site.urls),
     path("__debug__/", include("debug_toolbar.urls")), # django-debug-toolbar
     path("api/v1/", include("api.urls", namespace="api")),
+    path('', admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
