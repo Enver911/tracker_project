@@ -33,7 +33,7 @@ DJANGO_ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS")
 
 INTERNAL_IPS = os.getenv("INTERNAL_IPS")
 
-
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS").split()
 
 
 # Application definition
