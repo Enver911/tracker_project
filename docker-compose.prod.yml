@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  web:
+    # Берем Dockerfile из каталога app
+    build:
+      context: ./app
+      dockerfile: Dockerfile.prod
+    # Запускаем сервер gunicorn
+    command: gunicorn core.wsgi:application --bind 0.0.0.0:8000
+    # Открываем порт 8000 внутри и снаружи
+    ports:
+      - 8000:8000
+    # Файл содержащий переменные для контейнера
+    env_file:
+      - .env.prod
+    # Дожидаемся запуска контейнера db и memcached
+    depends_on:
+      - db
+      - memcached
+  db:
+      image: postgres:15
+      volumes:
+        - postgres_data:/var/lib/postgresql/data/
+      environment:
+        - POSTGRES_USER=tracker_user
+        - POSTGRES_PASSWORD=12345
+        - POSTGRES_DB=tracker
+  memcached:
+      image: memcached:1.6.21
+      ports:
+        - 11211:11211
+volumes:
+  postgres_data:
