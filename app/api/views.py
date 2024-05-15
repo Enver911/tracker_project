@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import BoardSerializer, ColumnSerializer, CardSerializer
+from api.serializers import BoardSerializer, ColumnSerializer, CardSerializer
 from tracker.models import Column, Card
 from django.shortcuts import get_object_or_404
 
