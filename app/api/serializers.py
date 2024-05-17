@@ -2,6 +2,7 @@ from rest_framework import serializers
 from tracker import models
 from django.urls import reverse_lazy
 from tracker.models import Board, Column, Card
+from django.contrib.auth import get_user_model
 
 
 class BoardSerializer(serializers.ModelSerializer):
@@ -56,3 +57,23 @@ class ColumnSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Column
         fields = ("id", "title", "cards")
+        
+
+class UserSerializer(serializers.ModelSerializer):
+    pass
+
+    def create(self, validated_data):
+        pass
+    
+    def update(self, instance, validated_data):
+        pass
+    
+    class Meta:
+        model = get_user_model()
+        fields = ()
+        
+        
+        
+class AuthSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(max_length=150)
