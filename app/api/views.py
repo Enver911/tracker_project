@@ -157,7 +157,7 @@ class LogoutView(APIView):
 
 
 class BoardMediaView(APIView):
-    def post(self, request, board_id):
+    def put(self, request, board_id):
         instance = get_object_or_404(request.user.boards, id=board_id)  
         form = BoardForm(files=request.FILES)
         
@@ -165,11 +165,11 @@ class BoardMediaView(APIView):
             form.save(instance=instance)
             return Response({"detail": "Data was saved"})
         
-        return Response({"detail": "Wrong data"})
+        return Response({"detail": "Wrong data"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CardMediaView(APIView):
-    def post(self, request, board_id, column_id, card_id):
+    def put(self, request, board_id, column_id, card_id):
         instance = get_object_or_404(Card.objects, column__id=column_id, id=card_id)
         form = CardForm(files=request.FILES)
         
@@ -177,5 +177,5 @@ class CardMediaView(APIView):
             form.save(instance=instance)
             return Response({"detail": "Data was saved"})
         
-        return Response({"detail": "Wrong data"})
+        return Response({"detail": "Wrong data"}, status=status.HTTP_400_BAD_REQUEST)
     
