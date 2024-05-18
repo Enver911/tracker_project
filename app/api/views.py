@@ -2,11 +2,12 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.serializers import BoardSerializer, ColumnSerializer, CardSerializer, AuthSerializer
+from api.serializers import BoardSerializer, ColumnSerializer, CardSerializer, AuthSerializer, RegistrationSerializer
 from api.forms import BoardForm, CardForm
 from tracker.models import Column, Card
 from django.shortcuts import get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import AllowAny
 from rest_framework.authentication import TokenAuthentication 
 from rest_framework.authtoken.models import Token
@@ -103,8 +104,8 @@ class CardListView(APIView):
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class CardView(APIView):
     
+class CardView(APIView):
     def put(self, request, board_id, column_id, card_id):
         instance = get_object_or_404(Card.objects, column__id=column_id, id=card_id)
         serializer = CardSerializer(data=request.data)
@@ -127,6 +128,18 @@ class CardView(APIView):
 class RegistrationView(APIView):
     def post(self, request):
         pass
+    
+    
+class RegistrationView(APIView):
+    def post(self, request):
+        serializer = RegistrationSerializer(data=request.data)
+        if serializer.is_valid():  
+            get_user_model().objects.create(username=serializer.validated_data["username"], 
+                                            email=serializer.validated_data["email"], 
+                                            password=make_password(serializer.validated_data["password1"]))
+            return Response(serializer.validated_data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     
 class LoginView(APIView):

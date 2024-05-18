@@ -3,6 +3,7 @@ from tracker import models
 from django.urls import reverse_lazy
 from tracker.models import Board, Column, Card
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 
 
 class BoardSerializer(serializers.ModelSerializer):
@@ -77,3 +78,29 @@ class UserSerializer(serializers.ModelSerializer):
 class AuthSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(max_length=150)
+    
+class RegistrationSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    password1 = serializers.CharField()
+    password2 = serializers.CharField()
+    
+    def validate_username(self, username):
+        user_check_username = get_user_model().objects.filter(username=username)
+        if user_check_username:
+            raise serializers.ValidationError("Username is already taken")
+        return username
+                
+    def validate_email(self, email):
+        user_check_email = get_user_model().objects.filter(email=email) 
+        if user_check_email:
+            raise serializers.ValidationError("Email is already taken")
+        return email
+
+    def validate(self, data):
+        validate_password(data["password1"])
+        if data["password1"] != data["password2"]:
+            raise serializers.ValidationError("The entered passwords do not match")
+        return data
+        
+        
