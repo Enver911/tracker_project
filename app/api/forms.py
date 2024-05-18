@@ -1,13 +1,21 @@
 from django import forms
-from tracker.models import Board, Card
 
-class BoardForm(forms.ModelForm):
-    class Meta:
-        model = Board
-        fields = ("avatar", "background")
-        
-        
-class CardForm(forms.ModelForm):
-    class Meta:
-        model = Card
-        fields = ("avatar", "background")
+
+class BoardForm(forms.Form):
+    avatar = forms.ImageField()
+    
+    def save(self, instance):
+        instance.avatar.delete()
+        instance.avatar = self.cleaned_data["avatar"]
+        instance.save()
+    
+    
+class CardForm(forms.Form):
+    avatar = forms.ImageField()
+    
+    def save(self, instance):
+        instance.avatar.delete()
+        instance.avatar = self.cleaned_data["avatar"]
+        instance.save()
+    
+    

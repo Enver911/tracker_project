@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from api.serializers import BoardSerializer, ColumnSerializer, CardSerializer, AuthSerializer
+from api.forms import BoardForm, CardForm
 from tracker.models import Column, Card
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import authenticate, login, logout
@@ -156,10 +157,25 @@ class LogoutView(APIView):
 
 
 class BoardMediaView(APIView):
-    pass
+    def post(self, request, board_id):
+        instance = get_object_or_404(request.user.boards, id=board_id)  
+        form = BoardForm(files=request.FILES)
+        
+        if form.is_valid():
+            form.save(instance=instance)
+            return Response({"detail": "Data was saved"})
+        
+        return Response({"detail": "Wrong data"})
 
 
 class CardMediaView(APIView):
-    pass
-    
+    def post(self, request, board_id, column_id, card_id):
+        instance = get_object_or_404(Card.objects, column__id=column_id, id=card_id)
+        form = CardForm(files=request.FILES)
+        
+        if form.is_valid():
+            form.save(instance=instance)
+            return Response({"detail": "Data was saved"})
+        
+        return Response({"detail": "Wrong data"})
     

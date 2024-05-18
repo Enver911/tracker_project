@@ -3,16 +3,16 @@ from django.contrib.auth import get_user_model
 
 
 def board_avatar(instance, filename):
-    return f"{instance.author.username}/boards/avatar/{filename}"
+    return f"boards/{instance.id}/avatar/{filename}" 
+
+def card_avatar(instance, filename):
+    return f"cards/{instance.id}/avatar/{filename}"
 
 def board_background(instance, filename):
     return f"{instance.author.username}/boards/background/{filename}"
 
 def card_background(instance, filename):
     return f"{instance.author.username}/cards/background/{filename}"
-
-def card_avatar(instance, filename):
-    return f"{instance.author.username}/cards/avatar/{filename}"
 
 # Create your models here.
 class Board(models.Model):
