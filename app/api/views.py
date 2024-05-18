@@ -131,6 +131,7 @@ class RegistrationView(APIView):
     
     
 class RegistrationView(APIView):
+    permission_classes = (AllowAny,)
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():  
@@ -144,7 +145,6 @@ class RegistrationView(APIView):
     
 class LoginView(APIView):
     permission_classes = (AllowAny,)
-    authentication_classes = []
     def post(self, request):
         serializer = AuthSerializer(data=request.data)
         if serializer.is_valid():
