@@ -22,5 +22,5 @@ from django.conf import settings
 urlpatterns = [
     path("__debug__/", include("debug_toolbar.urls")), # django-debug-toolbar
     path("api/v1/", include("api.urls", namespace="api")),
-    path('', admin.site.urls),
+    #path('', admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

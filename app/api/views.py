@@ -22,8 +22,9 @@ class BoardListView(APIView):
         serializer = BoardSerializer(data=request.data)
         
         if serializer.is_valid():
-            serializer.create(request, serializer.validated_data)
-            return Response(serializer.validated_data)
+            instance_info = serializer.create(request, serializer.validated_data)
+            serializer_info = BoardSerializer(instance=instance_info)
+            return Response(serializer_info.data)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -34,8 +35,9 @@ class BoardView(APIView):
         serializer = BoardSerializer(data=request.data)
         
         if serializer.is_valid():
-            serializer.update(instance, serializer.validated_data)
-            return Response(serializer.validated_data)
+            instance_info = serializer.update(instance, serializer.validated_data)
+            serializer_info = BoardSerializer(instance=instance_info)
+            return Response(serializer_info.data)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -57,8 +59,9 @@ class ColumnListView(APIView):
         serializer = ColumnSerializer(data=request.data)
         
         if serializer.is_valid():
-            serializer.create(board_id, serializer.validated_data)
-            return Response(serializer.validated_data)
+            instance_info = serializer.create(board_id, serializer.validated_data)
+            serializer_info = ColumnSerializer(instance=instance_info)
+            return Response(serializer_info.data)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -69,8 +72,9 @@ class ColumnView(APIView):
         serializer = ColumnSerializer(data=request.data)
         
         if serializer.is_valid():
-            serializer.update(instance, serializer.validated_data)
-            return Response(serializer.validated_data)
+            instance_info = serializer.update(instance, serializer.validated_data)
+            serializer_info = ColumnSerializer(instance=instance_info)
+            return Response(serializer_info.data)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -92,8 +96,9 @@ class CardListView(APIView):
         serializer = CardSerializer(data=request.data)
         
         if serializer.is_valid():
-            serializer.create(column_id, serializer.validated_data)
-            return Response(serializer.validated_data)
+            instance_info = serializer.create(column_id, serializer.validated_data)
+            serializer_info = CardSerializer(instance=instance_info)
+            return Response(serializer_info.data)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -104,8 +109,9 @@ class CardView(APIView):
         serializer = CardSerializer(data=request.data)
         
         if serializer.is_valid():
-            serializer.update(instance, serializer.validated_data)
-            return Response(serializer.validated_data)
+            instance_info = serializer.update(instance, serializer.validated_data)
+            serializer_info = CardSerializer(instance=instance_info)
+            return Response(serializer_info.data)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
