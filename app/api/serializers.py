@@ -4,15 +4,17 @@ from django.urls import reverse_lazy
 from tracker.models import Board, Column, Card
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.hashers import make_password
 
 
 class BoardSerializer(serializers.ModelSerializer):
-    def create(self, request, validated_data):
-        instance = request.user.boards.create(**validated_data)
+    avatar = serializers.ImageField(allow_null=True, max_length=100, required=False, read_only=True)
+    def create(self, request):
+        instance = request.user.boards.create(**self.validated_data)
         return instance
     
-    def update(self, instance, validated_data):
-        for key, value in validated_data.items():
+    def update(self, instance):
+        for key, value in self.validated_data.items():
             setattr(instance, key, value)
         instance.save()
         return instance
@@ -26,13 +28,13 @@ class CardSerializer(serializers.ModelSerializer):
     column = serializers.SlugRelatedField(slug_field="id", queryset=Column.objects.all(), required=False)
     avatar = serializers.ImageField(allow_null=True, max_length=100, required=False, read_only=True)
     
-    def create(self, column_id, validated_data):
+    def create(self, column_id):
         column = Column.objects.get(id=column_id)
-        instance = Card.objects.create(**validated_data, column=column)
+        instance = Card.objects.create(**self.validated_data, column=column)
         return instance
     
-    def update(self, instance, validated_data):
-        for key, value in validated_data.items():
+    def update(self, instance):
+        for key, value in self.validated_data.items():
             setattr(instance, key, value)     
         instance.save()
         return instance
@@ -45,13 +47,13 @@ class CardSerializer(serializers.ModelSerializer):
 class ColumnSerializer(serializers.ModelSerializer):
     cards = CardSerializer(many=True, read_only=True)
 
-    def create(self, board_id, validated_data):
+    def create(self, board_id):
         board = Board.objects.get(id=board_id)
-        instance = Column.objects.create(**validated_data, board=board)
+        instance = Column.objects.create(**self.validated_data, board=board)
         return instance
     
-    def update(self, instance, validated_data):
-        for key, value in validated_data.items():
+    def update(self, instance):
+        for key, value in self.validated_data.items():
             setattr(instance, key, value)
         instance.save()
         return instance
@@ -83,6 +85,12 @@ class RegistrationSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password1 = serializers.CharField()
     password2 = serializers.CharField()
+    
+    def create(self):
+        instance = get_user_model().objects.create(username=self.validated_data["username"], 
+                                                   email=self.validated_data["email"],
+                                                   password=make_password(self.validated_data["password1"]))
+        return instance
     
     def validate_username(self, username):
         user_check_username = get_user_model().objects.filter(username=username)

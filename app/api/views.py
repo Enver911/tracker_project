@@ -24,7 +24,7 @@ class BoardListView(APIView):
         serializer = BoardSerializer(data=request.data)
         
         if serializer.is_valid():
-            instance_info = serializer.create(request, serializer.validated_data)
+            instance_info = serializer.create(request)
             serializer_info = BoardSerializer(instance=instance_info)
             return Response(serializer_info.data)
             
@@ -37,7 +37,7 @@ class BoardView(APIView):
         serializer = BoardSerializer(data=request.data)
         
         if serializer.is_valid():
-            instance_info = serializer.update(instance, serializer.validated_data)
+            instance_info = serializer.update(instance)
             serializer_info = BoardSerializer(instance=instance_info)
             return Response(serializer_info.data)
         
@@ -61,7 +61,7 @@ class ColumnListView(APIView):
         serializer = ColumnSerializer(data=request.data)
         
         if serializer.is_valid():
-            instance_info = serializer.create(board_id, serializer.validated_data)
+            instance_info = serializer.create(board_id)
             serializer_info = ColumnSerializer(instance=instance_info)
             return Response(serializer_info.data)
             
@@ -69,19 +69,19 @@ class ColumnListView(APIView):
 
 
 class ColumnView(APIView):
-    def put(self, request, board_id, column_id):
-        instance = get_object_or_404(Column.objects, board__id=board_id, id=column_id)
+    def put(self, request, column_id):
+        instance = get_object_or_404(Column.objects, id=column_id)
         serializer = ColumnSerializer(data=request.data)
         
         if serializer.is_valid():
-            instance_info = serializer.update(instance, serializer.validated_data)
+            instance_info = serializer.update(instance)
             serializer_info = ColumnSerializer(instance=instance_info)
             return Response(serializer_info.data)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def delete(self, request, board_id, column_id):
-        instance = get_object_or_404(Column.objects, board__id=board_id, id=column_id)
+    def delete(self, request, column_id):
+        instance = get_object_or_404(Column.objects, id=column_id)
         serializer = ColumnSerializer(instance=instance)
         data = serializer.data
         instance.delete()
@@ -89,16 +89,16 @@ class ColumnView(APIView):
     
     
 class CardListView(APIView):
-    def get(self, request, board_id, column_id):
+    def get(self, request, column_id):
         cards = Card.objects.filter(column__id=column_id).all()
         serializer = CardSerializer(instance=cards, many=True)
         return Response(serializer.data)
     
-    def post(self, request, board_id, column_id):
+    def post(self, request, column_id):
         serializer = CardSerializer(data=request.data)
         
         if serializer.is_valid():
-            instance_info = serializer.create(column_id, serializer.validated_data)
+            instance_info = serializer.create(column_id)
             serializer_info = CardSerializer(instance=instance_info)
             return Response(serializer_info.data)
             
@@ -106,19 +106,19 @@ class CardListView(APIView):
     
     
 class CardView(APIView):
-    def put(self, request, board_id, column_id, card_id):
-        instance = get_object_or_404(Card.objects, column__id=column_id, id=card_id)
+    def put(self, request, card_id):
+        instance = get_object_or_404(Card.objects, id=card_id)
         serializer = CardSerializer(data=request.data)
         
         if serializer.is_valid():
-            instance_info = serializer.update(instance, serializer.validated_data)
+            instance_info = serializer.update(instance)
             serializer_info = CardSerializer(instance=instance_info)
             return Response(serializer_info.data)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def delete(self, request, board_id, column_id, card_id):
-        instance = get_object_or_404(Card.objects, column__id=column_id, id=card_id)
+    def delete(self, request, card_id):
+        instance = get_object_or_404(Card.objects, id=card_id)
         serializer = CardSerializer(instance=instance)
         data = serializer.data
         instance.delete()
@@ -136,9 +136,7 @@ class RegistrationView(APIView):
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():  
-            get_user_model().objects.create(username=serializer.validated_data["username"], 
-                                            email=serializer.validated_data["email"], 
-                                            password=make_password(serializer.validated_data["password1"]))
+            serializer.create()
             return Response(serializer.validated_data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -184,8 +182,8 @@ class BoardMediaView(APIView):
 
 
 class CardMediaView(APIView):
-    def put(self, request, board_id, column_id, card_id):
-        instance = get_object_or_404(Card.objects, column__id=column_id, id=card_id)
+    def put(self, request, board_id, card_id):
+        instance = get_object_or_404(Card.objects, id=card_id)
         form = CardForm(files=request.FILES)
         
         if form.is_valid():
