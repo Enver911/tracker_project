@@ -12,9 +12,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.authentication import TokenAuthentication 
 from rest_framework.authtoken.models import Token
 
+
 # Create your views here.
 class BoardListView(APIView):
-    
     def get(self, request):
         boards = request.user.boards.all()
         serializer = BoardSerializer(instance=boards, many=True)
@@ -30,8 +30,8 @@ class BoardListView(APIView):
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class BoardView(APIView):
     
+class BoardView(APIView):
     def put(self, request, board_id):
         instance = get_object_or_404(request.user.boards, id=board_id)        
         serializer = BoardSerializer(data=request.data)
@@ -50,8 +50,8 @@ class BoardView(APIView):
         instance.delete()
         return Response(data)
     
-class ColumnListView(APIView):
     
+class ColumnListView(APIView):
     def get(self, request, board_id):
         columns = Column.objects.filter(board__id=board_id).all()
         serializer = ColumnSerializer(instance=columns, many=True)
@@ -67,8 +67,8 @@ class ColumnListView(APIView):
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class ColumnView(APIView):
-    
     def put(self, request, board_id, column_id):
         instance = get_object_or_404(Column.objects, board__id=board_id, id=column_id)
         serializer = ColumnSerializer(data=request.data)
@@ -87,8 +87,8 @@ class ColumnView(APIView):
         instance.delete()
         return Response(data)
     
-class CardListView(APIView):
     
+class CardListView(APIView):
     def get(self, request, board_id, column_id):
         cards = Card.objects.filter(column__id=column_id).all()
         serializer = CardSerializer(instance=cards, many=True)

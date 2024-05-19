@@ -7,7 +7,6 @@ from django.contrib.auth.password_validation import validate_password
 
 
 class BoardSerializer(serializers.ModelSerializer):
-    
     def create(self, request, validated_data):
         instance = request.user.boards.create(**validated_data)
         return instance
@@ -24,6 +23,8 @@ class BoardSerializer(serializers.ModelSerializer):
         
              
 class CardSerializer(serializers.ModelSerializer):
+    column = serializers.SlugRelatedField(slug_field="id", queryset=Column.objects.all(), required=False)
+    avatar = serializers.ImageField(allow_null=True, max_length=100, required=False, read_only=True)
     
     def create(self, column_id, validated_data):
         column = Column.objects.get(id=column_id)
@@ -32,13 +33,13 @@ class CardSerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         for key, value in validated_data.items():
-            setattr(instance, key, value)
+            setattr(instance, key, value)     
         instance.save()
         return instance
     
     class Meta:
         model = models.Card
-        fields = ("id", "title", "description", "avatar", "background", "deadline")
+        fields = ("id", "column", "title", "description", "avatar", "background", "deadline")
         
         
 class ColumnSerializer(serializers.ModelSerializer):
@@ -61,8 +62,6 @@ class ColumnSerializer(serializers.ModelSerializer):
         
 
 class UserSerializer(serializers.ModelSerializer):
-    pass
-
     def create(self, validated_data):
         pass
     
