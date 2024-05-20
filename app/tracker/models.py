@@ -34,7 +34,7 @@ class Column(models.Model):
 
 class Card(models.Model):
     column = models.ForeignKey(to=Column, on_delete=models.CASCADE, related_name="cards")
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=100, default="No name")
     description = models.TextField(null=True)
     avatar = models.ImageField(upload_to=card_avatar, null=True)
     background = models.CharField(max_length=100, null=True)

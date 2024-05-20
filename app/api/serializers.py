@@ -8,7 +8,7 @@ from django.contrib.auth.hashers import make_password
 
 
 class BoardSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(allow_null=True, max_length=100, required=False, read_only=True)
+    avatar = serializers.ImageField(read_only=True)
     def create(self, request):
         instance = request.user.boards.create(**self.validated_data)
         return instance
@@ -26,11 +26,13 @@ class BoardSerializer(serializers.ModelSerializer):
              
 class CardSerializer(serializers.ModelSerializer):
     column = serializers.SlugRelatedField(slug_field="id", queryset=Column.objects.all(), required=False)
-    avatar = serializers.ImageField(allow_null=True, max_length=100, required=False, read_only=True)
+    avatar = serializers.ImageField(read_only=True)
     
     def create(self, column_id):
         column = Column.objects.get(id=column_id)
-        instance = Card.objects.create(**self.validated_data, column=column)
+        instance = Card.objects.create(**self.validated_data)
+        instance.column = column
+        instance.save()
         return instance
     
     def update(self, instance):
