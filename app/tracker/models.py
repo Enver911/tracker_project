@@ -17,7 +17,7 @@ def card_background(instance, filename):
 # Create your models here.
 class Board(models.Model):
     author = models.ManyToManyField(to=get_user_model(), related_name="boards")
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=100, default="No name")
     description = models.TextField(null=True)
     avatar = models.ImageField(upload_to=board_avatar, null=True)
     background = models.CharField(max_length=100, null=True)
@@ -27,7 +27,7 @@ class Board(models.Model):
     
 class Column(models.Model):
     board = models.ForeignKey(to=Board, on_delete=models.CASCADE, related_name="columns")
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=100, default="No name")
     
     def __str__(self):
         return self.title
