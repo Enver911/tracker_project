@@ -41,7 +41,7 @@ class CardSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = models.Card
-        fields = ("id", "column", "title", "description", "avatar", "background", "deadline")
+        fields = ("id", "column", "title", "description", "avatar", "background", "foreground", "deadline")
         extra_kwargs = {"deadline": {"error_messages": {"invalid": "Datetime has wrong format. Use one of these formats instead: YYYY-MM-DD hh:mm:ss"}}}
         
         

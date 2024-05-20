@@ -18,9 +18,9 @@ def card_background(instance, filename):
 class Board(models.Model):
     author = models.ManyToManyField(to=get_user_model(), related_name="boards")
     title = models.CharField(max_length=100)
-    description = models.TextField(null=True, blank=True)
-    avatar = models.ImageField(upload_to=board_avatar, null=True, blank=True)
-    background = models.CharField(max_length=100, null=True, blank=True)
+    description = models.TextField(null=True)
+    avatar = models.ImageField(upload_to=board_avatar, null=True)
+    background = models.CharField(max_length=100, null=True)
     
     def __str__(self):
         return self.title
@@ -35,13 +35,13 @@ class Column(models.Model):
 class Card(models.Model):
     column = models.ForeignKey(to=Column, on_delete=models.CASCADE, related_name="cards")
     title = models.CharField(max_length=100)
-    description = models.TextField(null=True, blank=True)
-    avatar = models.ImageField(upload_to=card_avatar, null=True, blank=True)
-    background = models.CharField(max_length=100, null=True, blank=True)
-    foreground = models.CharField(max_length=100, null=True, blank=True)
+    description = models.TextField(null=True)
+    avatar = models.ImageField(upload_to=card_avatar, null=True)
+    background = models.CharField(max_length=100, null=True)
+    foreground = models.CharField(max_length=100, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    deadline = models.DateTimeField(null=True, blank=True)
+    deadline = models.DateTimeField(null=True)
     
     def __str__(self):
         return self.title
