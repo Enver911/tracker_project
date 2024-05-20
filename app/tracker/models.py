@@ -38,6 +38,7 @@ class Card(models.Model):
     description = models.TextField(null=True, blank=True)
     avatar = models.ImageField(upload_to=card_avatar, null=True, blank=True)
     background = models.CharField(max_length=100, null=True, blank=True)
+    foreground = models.CharField(max_length=100, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     deadline = models.DateTimeField(null=True, blank=True)
