@@ -30,9 +30,8 @@ class CardSerializer(serializers.ModelSerializer):
     
     def create(self, column_id):
         column = Column.objects.get(id=column_id)
-        instance = Card.objects.create(**self.validated_data)
-        instance.column = column
-        instance.save()
+        self.validated_data.pop("column", None)
+        instance = Card.objects.create(**self.validated_data, column=column)
         return instance
     
     def update(self, instance):
