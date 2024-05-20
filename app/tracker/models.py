@@ -8,15 +8,9 @@ def board_avatar(instance, filename):
 def card_avatar(instance, filename):
     return f"cards/{instance.id}/avatar/{filename}"
 
-def board_background(instance, filename):
-    return f"{instance.author.username}/boards/background/{filename}"
-
-def card_background(instance, filename):
-    return f"{instance.author.username}/cards/background/{filename}"
-
 # Create your models here.
 class Board(models.Model):
-    author = models.ManyToManyField(to=get_user_model(), related_name="boards")
+    author = models.ForeignKey(to=get_user_model(), on_delete=models.CASCADE, related_name="boards")
     title = models.CharField(max_length=100, default="No name")
     description = models.TextField(null=True)
     avatar = models.ImageField(upload_to=board_avatar, null=True)

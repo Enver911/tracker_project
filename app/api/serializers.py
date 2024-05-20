@@ -5,7 +5,7 @@ from tracker.models import Board, Column, Card
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
-
+from django.shortcuts import get_object_or_404
 
 class BoardSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(read_only=True)
@@ -28,10 +28,10 @@ class CardSerializer(serializers.ModelSerializer):
     column = serializers.SlugRelatedField(slug_field="id", queryset=Column.objects.all(), required=False)
     avatar = serializers.ImageField(read_only=True)
     
-    def create(self, column_id):
-        column = Column.objects.get(id=column_id)
+    def create(self, request, column_id):
+        column = get_object_or_404(Column.objects, board__author=request.user, id=column_id)
         self.validated_data.pop("column", None)
-        instance = Card.objects.create(**self.validated_data, column=column)
+        instance = column.cards.create(**self.validated_data)
         return instance
     
     def update(self, instance):
@@ -49,9 +49,9 @@ class CardSerializer(serializers.ModelSerializer):
 class ColumnSerializer(serializers.ModelSerializer):
     cards = CardSerializer(many=True, read_only=True)
 
-    def create(self, board_id):
-        board = Board.objects.get(id=board_id)
-        instance = Column.objects.create(**self.validated_data, board=board)
+    def create(self, request, board_id):
+        board = get_object_or_404(Board.objects, author=request.user, id=board_id)
+        instance = board.columns.create(**self.validated_data)
         return instance
     
     def update(self, instance):
