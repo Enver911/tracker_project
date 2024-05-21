@@ -2,13 +2,13 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.serializers import BoardSerializer, ColumnSerializer, CardSerializer, AuthSerializer, RegistrationSerializer
+from api.serializers import BoardSerializer, ColumnSerializer, CardSerializer, AuthSerializer, RegistrationSerializer, FollowerSerializer, FollowerListSerializer
 from api.forms import BoardForm, CardForm
-from tracker.models import Column, Card
+from tracker.models import Board, Column, Card, Follower
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.hashers import make_password
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication 
 from rest_framework.authtoken.models import Token
 
@@ -33,7 +33,7 @@ class BoardListView(APIView):
     
 class BoardView(APIView):
     def put(self, request, board_id):
-        instance = get_object_or_404(request.user.boards, id=board_id)        
+        instance = get_object_or_404(Board.objects, id=board_id)        
         serializer = BoardSerializer(data=request.data)
         
         if serializer.is_valid():
@@ -44,16 +44,16 @@ class BoardView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, board_id):
-        instance = get_object_or_404(request.user.boards, id=board_id)
+        instance = get_object_or_404(Board.objects, id=board_id)
         serializer = BoardSerializer(instance=instance)
         data = serializer.data
         instance.delete()
         return Response(data)
     
-    
+
 class ColumnListView(APIView):
     def get(self, request, board_id):
-        columns = Column.objects.filter(board__author=request.user, board__id=board_id).all()
+        columns = Column.objects.filter(board__id=board_id)
         serializer = ColumnSerializer(instance=columns, many=True)
         return Response(serializer.data)
     
@@ -70,7 +70,7 @@ class ColumnListView(APIView):
 
 class ColumnView(APIView):
     def put(self, request, column_id):
-        instance = get_object_or_404(Column.objects, board__author=request.user, id=column_id)
+        instance = get_object_or_404(Column.objects, id=column_id)
         serializer = ColumnSerializer(data=request.data)
         
         if serializer.is_valid():
@@ -81,7 +81,7 @@ class ColumnView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, column_id):
-        instance = get_object_or_404(Column.objects, board__author=request.user, id=column_id)
+        instance = get_object_or_404(Column.objects, id=column_id)
         serializer = ColumnSerializer(instance=instance)
         data = serializer.data
         instance.delete()
@@ -90,7 +90,7 @@ class ColumnView(APIView):
     
 class CardListView(APIView):
     def get(self, request, column_id):
-        cards = Card.objects.filter(column__board__author=request.user, column__id=column_id)
+        cards = Card.objects.filter(column__id=column_id)
         serializer = CardSerializer(instance=cards, many=True)
         return Response(serializer.data)
     
@@ -107,7 +107,7 @@ class CardListView(APIView):
     
 class CardView(APIView):
     def put(self, request, card_id):
-        instance = get_object_or_404(Card.objects, column__board__author=request.user, id=card_id)
+        instance = get_object_or_404(Card.objects, id=card_id)
         serializer = CardSerializer(data=request.data)
         
         if serializer.is_valid():
@@ -118,7 +118,7 @@ class CardView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, card_id):
-        instance = get_object_or_404(Card.objects, column__board__author=request.user, id=card_id)
+        instance = get_object_or_404(Card.objects, id=card_id)
         serializer = CardSerializer(instance=instance)
         data = serializer.data
         instance.delete()
@@ -130,6 +130,7 @@ class RegistrationView(APIView):
     authentication_classes = []
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
+        
         if serializer.is_valid():  
             serializer.create()
             return Response(serializer.validated_data)
@@ -149,7 +150,6 @@ class LoginView(APIView):
                 login(request, user)
                 Token.objects.filter(user=user).delete() # delete old tokens every login
                 new_token = Token.objects.create(user=user) # return new token
-                
                 return Response({"Token": f"{str(new_token)}"})
             
             return Response({"detail": "Wrong username or password"}, status=status.HTTP_403_FORBIDDEN)
@@ -158,6 +158,7 @@ class LoginView(APIView):
     
     
 class LogoutView(APIView):
+    permission_classes = (IsAuthenticated, )
     def post(self, request):
         Token.objects.filter(user=request.user).delete() # delete old tokens every login
         logout(request)
@@ -166,7 +167,7 @@ class LogoutView(APIView):
 
 class BoardMediaView(APIView):
     def put(self, request, board_id):
-        instance = get_object_or_404(request.user.boards, id=board_id)  
+        instance = get_object_or_404(Board.objects, id=board_id)  
         form = BoardForm(files=request.FILES)
         
         if form.is_valid():
@@ -178,7 +179,7 @@ class BoardMediaView(APIView):
 
 class CardMediaView(APIView):
     def put(self, request, card_id):
-        instance = get_object_or_404(Card.objects, column__board__author=request.user, id=card_id)
+        instance = get_object_or_404(Card.objects, id=card_id)
         form = CardForm(files=request.FILES)
         
         if form.is_valid():
@@ -186,4 +187,42 @@ class CardMediaView(APIView):
             return Response({"detail": "Data was saved"})
         
         return Response({"detail": "Wrong data"}, status=status.HTTP_400_BAD_REQUEST)
+   
     
+
+class BoardFollowerListView(APIView):
+    def get(self, request, board_id):
+        followers = Follower.objects.filter(board__id=board_id)
+        serializer = FollowerListSerializer(instance=followers, many=True)
+        return Response(serializer.data)    
+    
+    def post(self, request, board_id):
+        serializer = FollowerListSerializer(data=request.data)       
+        
+        if serializer.is_valid():
+            instance_info = serializer.create(request, board_id)
+            serializer_info = FollowerListSerializer(instance=instance_info)
+            return Response(serializer_info.data)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
+
+
+    
+class BoardFollowerView(APIView):
+    def put(self, request, follower_id):
+        instance = get_object_or_404(Follower.objects, id=follower_id)
+        serializer = FollowerSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            instance_info = serializer.update(instance)
+            serializer_info = FollowerSerializer(instance=instance_info)
+            return Response(serializer_info.data)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, follower_id):
+        instance = get_object_or_404(Follower.objects, id=follower_id)
+        serializer = FollowerSerializer(instance=instance)
+        data = serializer.data
+        instance.delete()
+        return Response(data)

@@ -5,8 +5,10 @@ from django.contrib.auth import get_user_model
 def board_avatar(instance, filename):
     return f"boards/{instance.id}/avatar/{filename}" 
 
+
 def card_avatar(instance, filename):
     return f"cards/{instance.id}/avatar/{filename}"
+
 
 # Create your models here.
 class Board(models.Model):
@@ -19,12 +21,14 @@ class Board(models.Model):
     def __str__(self):
         return self.title
     
+    
 class Column(models.Model):
     board = models.ForeignKey(to=Board, on_delete=models.CASCADE, related_name="columns")
     title = models.CharField(max_length=100, default="No name")
     
     def __str__(self):
         return self.title
+
 
 class Card(models.Model):
     column = models.ForeignKey(to=Column, on_delete=models.CASCADE, related_name="cards")
@@ -39,3 +43,16 @@ class Card(models.Model):
     
     def __str__(self):
         return self.title
+    
+    
+class Follower(models.Model):
+    class Permissions(models.TextChoices):
+        MODERATOR = "Moderator"
+        READER = "Reader"
+    
+    user = models.ForeignKey(to=get_user_model(), on_delete=models.CASCADE, related_name="follow_boards")
+    board = models.ForeignKey(to=Board, on_delete=models.CASCADE, related_name="followers")
+    permission = models.CharField(choices=Permissions.choices, default=Permissions.READER)
+    
+    class Meta:
+        unique_together = ("user", "board")

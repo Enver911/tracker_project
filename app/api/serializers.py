@@ -1,7 +1,7 @@
-from rest_framework import serializers
+from rest_framework import serializers, validators
 from tracker import models
 from django.urls import reverse_lazy
-from tracker.models import Board, Column, Card
+from tracker.models import Board, Column, Card, Follower
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
@@ -29,7 +29,7 @@ class CardSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(read_only=True)
     
     def create(self, request, column_id):
-        column = get_object_or_404(Column.objects, board__author=request.user, id=column_id)
+        column = get_object_or_404(Column.objects, id=column_id)
         self.validated_data.pop("column", None)
         instance = column.cards.create(**self.validated_data)
         return instance
@@ -41,7 +41,7 @@ class CardSerializer(serializers.ModelSerializer):
         return instance
     
     class Meta:
-        model = models.Card
+        model = Card
         fields = ("id", "column", "title", "description", "avatar", "background", "foreground", "deadline")
         extra_kwargs = {"deadline": {"error_messages": {"invalid": "Datetime has wrong format. Use one of these formats instead: YYYY-MM-DD hh:mm:ss"}}}
         
@@ -50,7 +50,7 @@ class ColumnSerializer(serializers.ModelSerializer):
     cards = CardSerializer(many=True, read_only=True)
 
     def create(self, request, board_id):
-        board = get_object_or_404(Board.objects, author=request.user, id=board_id)
+        board = get_object_or_404(Board.objects, id=board_id)
         instance = board.columns.create(**self.validated_data)
         return instance
     
@@ -81,6 +81,7 @@ class UserSerializer(serializers.ModelSerializer):
 class AuthSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(max_length=150)
+    
     
 class RegistrationSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -113,3 +114,39 @@ class RegistrationSerializer(serializers.Serializer):
         return data
         
         
+class FollowerListSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(slug_field="username", queryset=get_user_model().objects.all())
+    board = serializers.SlugRelatedField(slug_field="id", read_only=True)
+    permission = serializers.ChoiceField(choices=Follower.Permissions.choices)
+    
+    def create(self, request, board_id):
+        board = get_object_or_404(Board.objects, id=board_id)
+
+        if board.followers.filter(user=self.validated_data["user"]).exists() or self.validated_data["user"] == request.user:
+            raise serializers.ValidationError({"detail": "User already invited"})
+
+        instance = board.followers.create(**self.validated_data)
+        return instance
+    
+    class Meta:
+        model = Follower
+        fields = "__all__"
+        
+        
+class FollowerSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(slug_field="username", read_only=True)
+    board = serializers.SlugRelatedField(slug_field="id", read_only=True)
+    permission = serializers.ChoiceField(choices=Follower.Permissions.choices)
+    
+    def update(self, instance):
+        for key, value in self.validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
+        return instance
+    
+    class Meta:
+        model = Follower
+        fields = "__all__"
+
+
+

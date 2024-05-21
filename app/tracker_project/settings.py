@@ -150,7 +150,10 @@ AUTH_USER_MODEL = "users.User"
 # django rest framework
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
+        #"rest_framework.permissions.IsAuthenticated",
+        #"api.permissions.IsAuthor",
+        "api.permissions.FUCKINGPERMISSION",
+        
     ],
     
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
