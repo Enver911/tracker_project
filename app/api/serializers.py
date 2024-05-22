@@ -7,8 +7,55 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import get_object_or_404
 
+
+class FollowerListSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(slug_field="username", queryset=get_user_model().objects.all())
+    board = serializers.SlugRelatedField(slug_field="id", read_only=True)
+    permission = serializers.ChoiceField(choices=Follower.Permissions.choices)
+    
+    def create(self, request, board_id):
+        board = get_object_or_404(Board.objects, id=board_id)
+
+        if board.followers.filter(user=self.validated_data["user"]).exists() or self.validated_data["user"] == request.user:
+            raise serializers.ValidationError({"detail": "User already invited"})
+
+        instance = board.followers.create(**self.validated_data)
+        return instance
+    
+    class Meta:
+        model = Follower
+        fields = "__all__"
+
+
+class SubscriberSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=150)
+    
+    def create(self, request, card_id):
+        card = get_object_or_404(Card.objects, id=card_id)
+        
+        if card.subscribers.filter(username=self.validated_data["username"]):
+            raise serializers.ValidationError({"detail": "User already subscribed to the card"})
+        
+        author = card.column.board.author
+        
+        if author.username == self.validated_data["username"]:
+            user = author
+        else:
+            user = get_object_or_404(card.column.board.followers, user__username=self.validated_data["username"]).user
+        
+        card.subscribers.add(user)
+        
+        return user
+    
+    class Meta:
+        model = get_user_model()
+        fields = ("id", "username")
+
+
 class BoardSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(read_only=True)
+    followers = FollowerListSerializer(many=True, read_only=True)
+    
     def create(self, request):
         instance = request.user.boards.create(**self.validated_data)
         return instance
@@ -21,12 +68,13 @@ class BoardSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = models.Board
-        fields = ("id", "title", "description", "avatar", "background")
+        fields = ("id", "title", "description", "avatar", "background", "followers")
         
              
 class CardSerializer(serializers.ModelSerializer):
     column = serializers.SlugRelatedField(slug_field="id", queryset=Column.objects.all(), required=False)
     avatar = serializers.ImageField(read_only=True)
+    subscribers = SubscriberSerializer(many=True, read_only=True)
     
     def create(self, request, column_id):
         column = get_object_or_404(Column.objects, id=column_id)
@@ -42,7 +90,7 @@ class CardSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Card
-        fields = ("id", "column", "title", "description", "avatar", "background", "foreground", "deadline")
+        fields = ("id", "column", "title", "description", "avatar", "background", "foreground", "deadline", "subscribers")
         extra_kwargs = {"deadline": {"error_messages": {"invalid": "Datetime has wrong format. Use one of these formats instead: YYYY-MM-DD hh:mm:ss"}}}
         
         
@@ -113,24 +161,7 @@ class RegistrationSerializer(serializers.Serializer):
             raise serializers.ValidationError("The entered passwords do not match")
         return data
         
-        
-class FollowerListSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(slug_field="username", queryset=get_user_model().objects.all())
-    board = serializers.SlugRelatedField(slug_field="id", read_only=True)
-    permission = serializers.ChoiceField(choices=Follower.Permissions.choices)
-    
-    def create(self, request, board_id):
-        board = get_object_or_404(Board.objects, id=board_id)
 
-        if board.followers.filter(user=self.validated_data["user"]).exists() or self.validated_data["user"] == request.user:
-            raise serializers.ValidationError({"detail": "User already invited"})
-
-        instance = board.followers.create(**self.validated_data)
-        return instance
-    
-    class Meta:
-        model = Follower
-        fields = "__all__"
         
         
 class FollowerSerializer(serializers.ModelSerializer):
@@ -149,26 +180,3 @@ class FollowerSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class SubscriberSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=150)
-    
-    def create(self, request, card_id):
-        card = get_object_or_404(Card.objects, id=card_id)
-        
-        if card.subscribers.filter(username=self.validated_data["username"]):
-            raise serializers.ValidationError({"detail": "User already subscribed to the card"})
-        
-        author = card.column.board.author
-        
-        if author.username == self.validated_data["username"]:
-            user = author
-        else:
-            user = get_object_or_404(card.column.board.followers, user__username=self.validated_data["username"]).user
-        
-        card.subscribers.add(user)
-        
-        return user
-    
-    class Meta:
-        model = get_user_model()
-        fields = ("id", "username")
