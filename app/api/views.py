@@ -2,21 +2,23 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.serializers import BoardSerializer, ColumnSerializer, CardSerializer, AuthSerializer, RegistrationSerializer, FollowerSerializer, FollowerListSerializer
+from api.serializers import BoardSerializer, ColumnSerializer, CardSerializer, AuthSerializer, RegistrationSerializer, FollowerSerializer, FollowerListSerializer, SubscriberSerializer
 from api.forms import BoardForm, CardForm
 from tracker.models import Board, Column, Card, Follower
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.hashers import make_password
+from django.db.models import Q
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication 
 from rest_framework.authtoken.models import Token
+from api import permissions
 
 
 # Create your views here.
 class BoardListView(APIView):
     def get(self, request):
-        boards = request.user.boards.all()
+        boards = Board.objects.filter(Q(author=request.user) | Q(followers__user=request.user))
         serializer = BoardSerializer(instance=boards, many=True)
         return Response(serializer.data)
     
@@ -32,6 +34,7 @@ class BoardListView(APIView):
     
     
 class BoardView(APIView):
+    permission_classes = (permissions.BoardPermission, )
     def put(self, request, board_id):
         instance = get_object_or_404(Board.objects, id=board_id)        
         serializer = BoardSerializer(data=request.data)
@@ -226,3 +229,34 @@ class BoardFollowerView(APIView):
         data = serializer.data
         instance.delete()
         return Response(data)
+    
+
+class SubscriberListView(APIView):
+    def get(self, request, board_id, card_id):
+        subscribers = get_object_or_404(Card.objects, id=card_id).subscribers
+        serializer = SubscriberSerializer(instance=subscribers, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request, board_id, card_id):
+        serializer = SubscriberSerializer(data=request.data)       
+        
+        if serializer.is_valid():
+            instance_info = serializer.create(request, card_id)
+            serializer_info = SubscriberSerializer(instance=instance_info)
+            return Response(serializer_info.data)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
+
+
+class SubscriberView(APIView):
+
+    def delete(self, request, board_id, card_id, user_id):
+        card = get_object_or_404(Card.objects, id=card_id)
+        instance = get_object_or_404(card.subscribers, id=user_id)
+        serializer = SubscriberSerializer(instance=instance)
+        data = serializer.data
+        card.subscribers.remove(instance)
+        return Response(data)
+
+
+

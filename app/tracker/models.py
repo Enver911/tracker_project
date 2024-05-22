@@ -32,6 +32,7 @@ class Column(models.Model):
 
 class Card(models.Model):
     column = models.ForeignKey(to=Column, on_delete=models.CASCADE, related_name="cards")
+    subscribers = models.ManyToManyField(to=get_user_model(), related_name="subscribes")
     title = models.CharField(max_length=100, default="No name")
     description = models.TextField(null=True)
     avatar = models.ImageField(upload_to=card_avatar, null=True)
@@ -50,7 +51,7 @@ class Follower(models.Model):
         MODERATOR = "Moderator"
         READER = "Reader"
     
-    user = models.ForeignKey(to=get_user_model(), on_delete=models.CASCADE, related_name="follow_boards")
+    user = models.ForeignKey(to=get_user_model(), on_delete=models.CASCADE, related_name="follows")
     board = models.ForeignKey(to=Board, on_delete=models.CASCADE, related_name="followers")
     permission = models.CharField(choices=Permissions.choices, default=Permissions.READER)
     

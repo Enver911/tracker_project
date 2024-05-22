@@ -149,4 +149,26 @@ class FollowerSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-
+class SubscriberSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=150)
+    
+    def create(self, request, card_id):
+        card = get_object_or_404(Card.objects, id=card_id)
+        
+        if card.subscribers.filter(username=self.validated_data["username"]):
+            raise serializers.ValidationError({"detail": "User already subscribed to the card"})
+        
+        author = card.column.board.author
+        
+        if author.username == self.validated_data["username"]:
+            user = author
+        else:
+            user = get_object_or_404(card.column.board.followers, user__username=self.validated_data["username"]).user
+        
+        card.subscribers.add(user)
+        
+        return user
+    
+    class Meta:
+        model = get_user_model()
+        fields = ("id", "username")

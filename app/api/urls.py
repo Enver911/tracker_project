@@ -31,4 +31,8 @@ urlpatterns = [
     path("<int:column_id>/cards/", views.CardListView.as_view(), name="CardList"),
     path("cards/<int:card_id>/", views.CardView.as_view(), name="Card"),
     path("cards/<int:card_id>/media/", views.CardMediaView.as_view(), name="CardMedia"),
+    
+    # card subscribers
+    path("boards/<int:board_id>/cards/<int:card_id>/subscribers/", views.SubscriberListView.as_view(), name="SubscriberList"),
+    path("boards/<int:board_id>/cards/<int:card_id>/subscribers/<int:user_id>/", views.SubscriberView.as_view(), name="Subscriber"),
 ]
