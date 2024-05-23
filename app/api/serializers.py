@@ -112,30 +112,17 @@ class ColumnSerializer(serializers.ModelSerializer):
         model = models.Column
         fields = ("id", "title", "cards")
         
-
-class UserSerializer(serializers.ModelSerializer):
-    def create(self, validated_data):
-        pass
     
-    def update(self, instance, validated_data):
-        pass
-    
-    class Meta:
-        model = get_user_model()
-        fields = ()
-        
-        
-        
 class AuthSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(max_length=150)
     
     
 class RegistrationSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    email = serializers.EmailField()
-    password1 = serializers.CharField()
-    password2 = serializers.CharField()
+    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField(max_length=254)
+    password1 = serializers.CharField(max_length=150)
+    password2 = serializers.CharField(max_length=150)
     
     def create(self):
         instance = get_user_model().objects.create(username=self.validated_data["username"], 
@@ -161,8 +148,6 @@ class RegistrationSerializer(serializers.Serializer):
             raise serializers.ValidationError("The entered passwords do not match")
         return data
         
-
-        
         
 class FollowerSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(slug_field="username", read_only=True)
@@ -180,3 +165,20 @@ class FollowerSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ProfileSerializer(serializers.ModelSerializer):
+    avatar = serializers.ImageField(read_only=True)
+    username = serializers.CharField(read_only=True)
+    email = serializers.EmailField(read_only=True)
+    date_joined = serializers.DateTimeField(read_only=True)
+    
+    def update(self, instance):
+        for key, value in self.validated_data.items():
+            setattr(instance, key, value)     
+        instance.save()
+        return instance
+    
+    class Meta:
+        model = get_user_model()
+        fields = ("avatar", "username", "email", "first_name", "last_name", "date_joined")
+        
+        

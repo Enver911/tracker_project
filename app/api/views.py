@@ -2,8 +2,16 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.serializers import BoardSerializer, ColumnSerializer, CardSerializer, AuthSerializer, RegistrationSerializer, FollowerSerializer, FollowerListSerializer, SubscriberSerializer
-from api.forms import BoardForm, CardForm
+from api.serializers import (BoardSerializer, 
+                             ColumnSerializer, 
+                             CardSerializer, 
+                             AuthSerializer, 
+                             RegistrationSerializer, 
+                             FollowerSerializer, 
+                             FollowerListSerializer, 
+                             SubscriberSerializer,
+                             ProfileSerializer)
+from api.forms import AvatarForm
 from tracker.models import Board, Column, Card, Follower
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import authenticate, login, logout, get_user_model
@@ -35,6 +43,11 @@ class BoardListView(APIView):
     
 class BoardView(APIView):
     permission_classes = (permissions.BoardPermission, )
+    def get(self, request, board_id):
+        instance = get_object_or_404(Board.objects, id=board_id)
+        serializer = BoardSerializer(instance=instance)
+        return Response(serializer.data)
+    
     def put(self, request, board_id):
         instance = get_object_or_404(Board.objects, id=board_id)        
         serializer = BoardSerializer(data=request.data)
@@ -72,6 +85,12 @@ class ColumnListView(APIView):
 
 
 class ColumnView(APIView):
+    def get(self, request, column_id):
+        instance = get_object_or_404(Column.objects, id=column_id)
+        serializer = ColumnSerializer(instance=instance)
+        return Response(serializer.data)
+    
+    
     def put(self, request, column_id):
         instance = get_object_or_404(Column.objects, id=column_id)
         serializer = ColumnSerializer(data=request.data)
@@ -109,6 +128,11 @@ class CardListView(APIView):
     
     
 class CardView(APIView):
+    def get(self, request, card_id):
+        instance = get_object_or_404(Card.objects, id=card_id)
+        serializer = CardSerializer(instance=instance)
+        return Response(serializer.data)
+    
     def put(self, request, card_id):
         instance = get_object_or_404(Card.objects, id=card_id)
         serializer = CardSerializer(data=request.data)
@@ -171,7 +195,7 @@ class LogoutView(APIView):
 class BoardMediaView(APIView):
     def put(self, request, board_id):
         instance = get_object_or_404(Board.objects, id=board_id)  
-        form = BoardForm(files=request.FILES)
+        form = AvatarForm(files=request.FILES)
         
         if form.is_valid():
             form.save(instance=instance)
@@ -183,7 +207,7 @@ class BoardMediaView(APIView):
 class CardMediaView(APIView):
     def put(self, request, card_id):
         instance = get_object_or_404(Card.objects, id=card_id)
-        form = CardForm(files=request.FILES)
+        form = AvatarForm(files=request.FILES)
         
         if form.is_valid():
             form.save(instance=instance)
@@ -210,7 +234,6 @@ class BoardFollowerListView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
 
 
-    
 class BoardFollowerView(APIView):
     def put(self, request, follower_id):
         instance = get_object_or_404(Follower.objects, id=follower_id)
@@ -259,4 +282,31 @@ class SubscriberView(APIView):
         return Response(data)
 
 
-
+class ProfileView(APIView):
+    permission_classes = (IsAuthenticated, )
+    def get(self, request):
+        instance = request.user
+        serializer = ProfileSerializer(instance=instance)
+        return Response(serializer.data)
+    
+    def put(self, request):
+        instance = request.user
+        serializer = ProfileSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            instance_info = serializer.update(instance)
+            serializer_info = ProfileSerializer(instance=instance_info)
+            return Response(serializer_info.data)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class ProfileMediaView(APIView):
+    def put(self, request):
+        instance = request.user
+        form = AvatarForm(files=request.FILES)
+        
+        if form.is_valid():
+            form.save(instance=instance)
+            return Response({"detail": "Data was saved"})
+        
+        return Response({"detail": "Wrong data"}, status=status.HTTP_400_BAD_REQUEST)

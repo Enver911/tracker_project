@@ -8,7 +8,8 @@ app_name = "api"
 
 urlpatterns = [
     # user api
-    path("profile/", views.LoginView.as_view(), name="Profile"),
+    path("profile/", views.ProfileView.as_view(), name="Profile"),
+    path("profile/media/", views.ProfileMediaView.as_view(), name="ProfileMedia"),
     path("login/", views.LoginView.as_view(), name="Login"),
     path("logout/", views.LogoutView.as_view(), name="Logout"),
     path("registration/", views.RegistrationView.as_view(), name="Registration"),
