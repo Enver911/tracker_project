@@ -2,5 +2,5 @@
 
 deploy commands in project directory: <br>
 <h5>
-    docker compose -f docker-compose.prod.yml up --build --force-recreate -d <br>
+    docker-compose -f docker-compose.prod.yml up --build --force-recreate -d <br>
 </h5>
