@@ -24,6 +24,8 @@ services:
       - POSTGRES_USER=tracker_user
       - POSTGRES_PASSWORD=12345
       - POSTGRES_DB=tracker
+    ports:
+      - 5432:5432
   memcached:
     image: memcached:1.6.21
     ports: 
